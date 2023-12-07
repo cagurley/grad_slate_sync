@@ -1,0 +1,13 @@
+.idea/*
+*test*
+*temp*
+*__pycache__*
+.archive/*
+audit/*
+build/*
+dist/*
+update/*
+*.db
+*.json
+*.log
+*.spec
