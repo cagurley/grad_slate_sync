@@ -21,8 +21,8 @@ def main():
             root = os.environ['HOME']
         else:
             root = os.environ['HOMEDRIVE'] + os.environ['HOMEPATH']
-        rootop1 = os.path.join(root, 'slate_sync_vars')
-        rootop2 = 'C:\\slate_sync_vars'
+        rootop1 = os.path.join(root, '.grad_slate_sync')
+        rootop2 = 'C:\\.grad_slate_sync'
         if os.path.exists(rootop1):
             root = rootop1
         else:

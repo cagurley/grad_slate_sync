@@ -125,13 +125,13 @@ ct_msx1 = """CREATE TABLE mssaux1 (
 )"""
 
 qi_msb = """select
-  (select [value] from dbo.getFieldTopTable(p.[id], 'emplid')) as [EMPLID],
+  (select [value] from dbo.getFieldTopTable(p.[id], 'empl_id')) as [EMPLID],
   (select [value] from dbo.getFieldTopTable(a.[id], 'adm_appl_nbr')) as [ADM_APPL_NBR],
-  (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'ug_appl_admit_type')) as [ADMIT_TYPE],
-  (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'ug_appl_academic_level')) as [ACADEMIC_LEVEL],
+  (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'appl_admit_type')) as [ADMIT_TYPE],
+  (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'appl_classification_level')) as [ACADEMIC_LEVEL],
   (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'appl_admit_term')) as [ADMIT_TERM],
-  coalesce((select top 1 [value] from dbo.getFieldTopTable(a.[id], 'ug_appl_acad_prog_pending')), (select top 1 [value] from dbo.getFieldTopTable(a.[id], 'ug_appl_acad_prog'))) as [ACAD_PROG],
-  coalesce((select top 1 [value] from dbo.getFieldExportTable(a.[id], 'ug_appl_acad_plan_pending')), (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'ug_appl_acad_plan'))) as [ACAD_PLAN],
+  coalesce((select top 1 [value] from dbo.getFieldTopTable(a.[id], 'appl_acad_prog')), (select top 1 [value] from dbo.getFieldTopTable(a.[id], 'ug_appl_acad_prog'))) as [ACAD_PROG],
+  coalesce((select top 1 [value] from dbo.getFieldExportTable(a.[id], 'appl_acad_plan')), (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'ug_appl_acad_plan'))) as [ACAD_PLAN],
   (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'prog_action')) as [PROG_ACTION],
   (select top 1 [value] from dbo.getFieldExportTable(a.[id], 'prog_reason')) as [PROG_REASON],
   (select top 1 [value] from dbo.getFieldTopTable(a.[id], 'appl_fee_status')) as [APPL_FEE_STATUS]
@@ -140,13 +140,12 @@ inner join [person] as p on a.[person] = p.[id]
 inner join [lookup.round] as lr on a.[round] = lr.[id]
 inner join [lookup.period] as lp on lr.[period] = lp.[id]
 where p.[id] not in (select [record] from [tag] where ([tag] in ('test')))
-and lr.[key] != 'GR'
 and a.[submitted] is not null
 and lp.[active] = 1
 order by 1, 2"""
 
 qi_msx1 = """select distinct
-  (select [value] from dbo.getFieldTopTable(p.[id], 'emplid')) as [EMPLID],
+  (select [value] from dbo.getFieldTopTable(p.[id], 'empl_id')) as [EMPLID],
   p.[preferred] as [PREFERRED],
   (case
   when len(p.[phone]) = 15 and substring(p.[phone], 1, 3) = '+1 ' then convert(varchar(32), replace(right(p.[phone], 12), '-', ''))
@@ -178,13 +177,12 @@ left outer join world.dbo.[country] as padw on pad.[country] = padw.[id]
 left outer join [address] as mad on a.[person] = mad.[record] and mad.[type] is null and mad.[rank] = 1 and mad.[country] in ('US', 'CA')
 left outer join world.dbo.[country] as madw on mad.[country] = madw.[id]
 where p.[id] not in (select [record] from [tag] where ([tag] in ('test')))
-and lr.[key] != 'GR'
 and a.[submitted] is not null
 and lp.[active] = 1
 order by 1"""
 
 qi_msx3 = """select distinct
-  (select [value] from dbo.getFieldTopTable(p.[id], 'emplid')) as [EMPLID]
+  (select [value] from dbo.getFieldTopTable(p.[id], 'empl_id')) as [EMPLID]
 from [application] as a
 inner join [person] as p on a.[person] = p.[id]
 inner join [lookup.round] as lr on a.[round] = lr.[id]
@@ -198,7 +196,7 @@ and exists (
   from [field]
   where p.[id] = [record]
   and [field] = 'citizenship_status'
-  and [prompt] = '01116174-db87-4115-8729-2785c7230017'
+  and [prompt] = '84519532-ab41-4dce-9b46-103f1693fba4'
 )
 order by 1"""
 
@@ -215,7 +213,7 @@ qi_orb = """SELECT
   A.APPL_FEE_STATUS
 FROM PS_L_ADM_PROG_VW A
 WHERE A.ADMIT_TERM BETWEEN :termlb AND :termub
-AND A.ACAD_CAREER = 'UGRD'
+AND A.ACAD_CAREER = 'GRAD'
 ORDER BY A.EMPLID, A.ADM_APPL_NBR"""
 
 qi_orx1 = """SELECT
@@ -268,7 +266,7 @@ qi_orx1 = """SELECT
 FROM PS_ADM_APPL_PROG A
 INNER JOIN PS_ADM_APPL_PLAN B ON A.EMPLID = B.EMPLID AND A.ACAD_CAREER = B.ACAD_CAREER AND A.STDNT_CAR_NBR = B.STDNT_CAR_NBR AND A.ADM_APPL_NBR = B.ADM_APPL_NBR AND A.APPL_PROG_NBR = B.APPL_PROG_NBR AND A.EFFDT = B.EFFDT AND A.EFFSEQ = B.EFFSEQ AND B.PLAN_SEQUENCE = 1
 WHERE A.ADMIT_TERM BETWEEN :termlb AND :termub
-AND A.ACAD_CAREER = 'UGRD'
+AND A.ACAD_CAREER = 'GRAD'
 AND A.EFFDT = (
   SELECT MAX(A_ED.EFFDT)
   FROM PS_ADM_APPL_PROG A_ED
@@ -365,7 +363,7 @@ AND NOT EXISTS (
   AND XA.DT_OF_DEATH IS NOT NULL
 )
 AND A.ADMIT_TERM BETWEEN :termlb AND :termub
-AND A.ACAD_CAREER = 'UGRD'
+AND A.ACAD_CAREER = 'GRAD'
 AND NOT EXISTS (
     SELECT *
     FROM PS_L_ADM_PROG_VW XA
@@ -382,7 +380,7 @@ INNER JOIN PS_ACAD_PLAN_TBL B ON A.ACAD_PROG = B.ACAD_PROG AND A.EFF_STATUS = B.
   WHERE B.ACAD_PLAN = B_ED.ACAD_PLAN
 )
 WHERE A.EFF_STATUS = 'A'
-AND A.ACAD_CAREER = 'UGRD'
+AND A.ACAD_CAREER = 'GRAD'
 AND A.EFFDT = (
   SELECT MAX(A_ED.EFFDT)
   FROM PS_ACAD_PROG_TBL A_ED
@@ -393,7 +391,7 @@ UNION
 SELECT DISTINCT A.ACAD_PROG, A.ACAD_PLAN
 FROM PS_ACAD_PROG_TBL A
 WHERE A.EFF_STATUS = 'A'
-AND A.ACAD_CAREER = 'UGRD'
+AND A.ACAD_CAREER = 'GRAD'
 AND A.EFFDT = (
   SELECT MAX(A_ED.EFFDT)
   FROM PS_ACAD_PROG_TBL A_ED
@@ -409,7 +407,7 @@ INNER JOIN PS_ACAD_PLAN_TBL B ON A.ACAD_CAREER = B.ACAD_CAREER AND A.EFF_STATUS 
   WHERE B.ACAD_PLAN = B_ED.ACAD_PLAN
 )
 WHERE A.EFF_STATUS = 'A'
-AND A.ACAD_CAREER = 'UGRD'
+AND A.ACAD_CAREER = 'GRAD'
 AND A.EFFDT = (
   SELECT MAX(A_ED.EFFDT)
   FROM PS_ACAD_PROG_TBL A_ED
